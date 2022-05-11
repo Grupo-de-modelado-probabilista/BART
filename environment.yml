@@ -6,7 +6,6 @@ dependencies:
   - aesara=2.6.2
   - arviz=0.12.0
   - blas
-  - flake8
   - jax
   - jupyter
   - matplotlib=3.4
@@ -16,5 +15,4 @@ dependencies:
   - pre-commit
   - python=3.9
   - pip:
-    - black[jupyter]
     - "git+https://github.com/pymc-devs/pymc.git@main"

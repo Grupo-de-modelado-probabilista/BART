@@ -12,3 +12,4 @@ dependencies:
   - pip:
     - "git+https://github.com/pymc-devs/pymc.git@main"
     - "git+https://github.com/arviz-devs/arviz.git@main"
+    - "git+https://github.com/pymc-devs/pymc-experimental.git@18fe6d0c00f8c97301be0f9ca45b2f00dddd323c"

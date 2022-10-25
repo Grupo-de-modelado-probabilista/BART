@@ -8,8 +8,8 @@ import arviz as az
 import matplotlib.pyplot as plt
 import numpy as np
 import pymc as pm
-import pymc_experimental as pmx
-from pymc_experimental.bart.pgbart import compute_prior_probability
+import pymc_bart as pmb
+from pymc_bart.pgbart import compute_prior_probability
 import pandas as pd
 
 # Configuration
@@ -44,9 +44,9 @@ idatas_at = {
 for m in trees:
     for alpha in alphas:
         with pm.Model() as model:
-            μ = pmx.BART("μ", X, Y, m=m, alpha=alpha)
+            μ = pmb.BART("μ", X, Y, m=m, alpha=alpha)
             σ = pm.HalfNormal("σ", 1)
-            y = pm.Normal("y", μ, σ, observed=f_x)
+            y = pm.Normal("y", μ, σ, observed=Y)
             idata = pm.sample(chains=4, random_seed=RANDOM_SEED)
             idatas_at[str(m)][str(alpha)] = idata
 
@@ -111,7 +111,7 @@ for m in trees:
             for sample in chain:
                 for tree in sample:
                     index = max(tree.item().tree_structure.keys())
-                    tmp_list.append(pmx.bart.tree.BaseNode(index).depth)
+                    tmp_list.append(pmb.tree.BaseNode(index).depth)
         trees_length[f"{m}"][f"{alpha}"] = pd.Series(tmp_list)
 
 # Trees' depth probabilities based on alpha values

@@ -11,7 +11,7 @@ conda env create -f environment.yml
 
 ## Citation
 
-To cite the results in the folder `experiments` please use [![arXiv](https://img.shields.io/badge/arXiv-2206.03619-b31b1b.svg)](https://arxiv.org/abs/2206.03619)
+To cite PyMC-BART and/or the results in the folder `experiments` please use [![arXiv](https://img.shields.io/badge/arXiv-2206.03619-b31b1b.svg)](https://arxiv.org/abs/2206.03619)
 
 Here is the citation in BibTeX format
 

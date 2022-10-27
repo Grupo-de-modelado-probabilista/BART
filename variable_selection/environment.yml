@@ -1,0 +1,14 @@
+name: bart-variables
+channels:
+  - conda-forge
+dependencies:
+  - blas
+  - jax
+  - jupyter
+  - pip
+  - pre-commit
+  - python=3.9
+  - pip:
+    - pymc
+    - "git+https://github.com/pymc-devs/pymc-bart.git@main"
+    - "git+https://github.com/arviz-devs/arviz.git@main"

@@ -3,7 +3,6 @@ channels:
   - conda-forge
 dependencies:
   - blas
-  - jax
   - jupyter
   - scikit-learn
   - pip
@@ -11,5 +10,6 @@ dependencies:
   - python=3.9
   - pip:
     - pymc==4.1.7
-    - pymc-bart==0.0.3
-    - "git+https://github.com/arviz-devs/arviz.git@main"
+    - pymc-bart==0.1.0
+    - arviz==0.13.0
+

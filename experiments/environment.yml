@@ -10,6 +10,6 @@ dependencies:
   - python=3.9
   - pip:
     - pymc==4.1.7
-    - pymc-bart==0.1.0
+    - pymc-bart=0.2.0
     - arviz==0.13.0
 

@@ -8,8 +8,8 @@ dependencies:
   - pip
   - pre-commit
   - python=3.9
+  - pymc==4.1.7
+  - arviz==0.13.0
   - pip:
-    - pymc==4.1.7
-    - pymc-bart=0.2.0
-    - arviz==0.13.0
+    - pymc-bart==0.2.0
 

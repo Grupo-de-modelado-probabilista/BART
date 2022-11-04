@@ -12,7 +12,7 @@ from pymc_bart.pgbart import compute_prior_probability
 
 
 # General settings
-RANDOM_SEED = 8457
+RANDOM_SEED = 4579
 np.random.seed(RANDOM_SEED)
 az.style.use("arviz-white")
 plt.rcParams["figure.dpi"] = 300
@@ -78,16 +78,6 @@ for idata, m, ax, X, Y, f in zip(
 comp = az.compare(dict(zip(["m=10", "m=50", "m=200"], idatas[:3])))
 ax = az.plot_compare(comp, plot_ic_diff=False, insample_dev=False, figsize=(10, 2.5), legend=False)
 plt.savefig("LOO_lin.png")
-
-#
-comp = az.compare(dict(zip(["m=10", "m=50", "m=200"], idatas[3:6])))
-ax = az.plot_compare(comp, plot_ic_diff=False, insample_dev=False, figsize=(10, 2.5), legend=False)
-plt.savefig("LOO_sin.png")
-
-#
-comp = az.compare(dict(zip(["m=10", "m=50", "m=200"], idatas[6:])))
-ax = az.plot_compare(comp, plot_ic_diff=False, insample_dev=False, figsize=(10, 2.5), legend=False)
-plt.savefig("LOO_stp.png")
 
 # Free memory
 del comp, idata, idatas, μ
@@ -359,30 +349,8 @@ fig.supylabel(r"μ - $f_{(x)}$", fontsize=16)
 
 plt.savefig("boxplots_friedman_i2.png")
 
-# Model compare
-model_compare = az.compare(
-    {
-        "m10": idatas_at["10"]["0.25"],
-        "m20": idatas_at["20"]["0.25"],
-        "m50": idatas_at["50"]["0.25"],
-        "m100": idatas_at["100"]["0.25"],
-        "m200": idatas_at["200"]["0.25"],
-    }
-)
-
-ax = az.plot_compare(
-    model_compare,
-    plot_ic_diff=False,
-    insample_dev=False,
-    figsize=(10, 2.5),
-    legend=False,
-)
-
-plt.savefig("loo_friedman_i2.png")
-
-
 # Free memory
-del idata, idatas_at, all_trees_at, model_compare, μ
+del idata, idatas_at, all_trees_at, μ
 
 
 # Coal mining disaster

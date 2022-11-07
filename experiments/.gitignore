@@ -1,5 +1,2 @@
-# png files of the plots
-*.png
-
 # checkpoint folder from jupyter notebook
 .ipynb_checkpoints

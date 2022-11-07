@@ -12,8 +12,8 @@ from pymc_bart.pgbart import compute_prior_probability
 
 
 # General settings
-RANDOM_SEED = 8457
-rng = np.random.RandomState(RANDOM_SEED)
+RANDOM_SEED = 4579
+np.random.seed(RANDOM_SEED)
 az.style.use("arviz-white")
 plt.rcParams["figure.dpi"] = 300
 
@@ -27,11 +27,11 @@ funcs = [
 ]
 
 X_lin = np.linspace(0, 1, 200)
-Y_lin = rng.normal(funcs[0](X_lin), 2, size=200)
+Y_lin = np.random.normal(funcs[0](X_lin), 2, size=200)
 X_lin = X_lin[:, None]
 
 X_sin = np.linspace(0, 1, 200)
-Y_sin = rng.normal(funcs[1](X_sin), 2, size=200)
+Y_sin = np.random.normal(funcs[1](X_sin), 2, size=200)
 X_sin = X_sin[:, None]
 
 X_stp = np.linspace(0, 1, 200)
@@ -44,6 +44,7 @@ YS = [Y_lin, Y_sin, Y_stp]
 
 # Run model
 idatas = []
+m_trees = []
 for X, Y in zip(XS, YS):
     for m in [10, 50, 200]:
         with pm.Model() as functions:
@@ -52,12 +53,14 @@ for X, Y in zip(XS, YS):
             y = pm.Normal("y", μ, σ, observed=Y)
             idata = pm.sample(random_seed=RANDOM_SEED)
             idatas.append(idata)
+            m_trees.append(μ.owner.op.m)
 
 # Plot function
 _, axes = plt.subplots(3, 3, figsize=(10, 8), sharex=True)
 
-for idata, ax, X, Y, f in zip(
+for idata, m, ax, X, Y, f in zip(
     idatas,
+    m_trees,
     np.ravel(axes),
     np.repeat(XS, 3, 0),
     np.repeat(YS, 3, 0),
@@ -68,32 +71,16 @@ for idata, ax, X, Y, f in zip(
     az.plot_hdi(X[:, 0], idata.posterior["μ"], color="C0", smooth=False, ax=ax)
     ax.plot(X[:, 0], Y, ".", zorder=1)
     ax.plot(X[:, 0], f(X), "k--")
-    ax.set_title(f"m={len(idata.sample_stats.bart_trees_dim_0)}")
-    plt.savefig("step_function.png")
+    ax.set_title(f"{m=}")
+    plt.savefig("simple_functions.png")
 
 # LOO compare
 comp = az.compare(dict(zip(["m=10", "m=50", "m=200"], idatas[:3])))
-ax = az.plot_compare(
-    comp, plot_ic_diff=False, insample_dev=False, figsize=(10, 2.5), legend=False
-)
+ax = az.plot_compare(comp, plot_ic_diff=False, insample_dev=False, figsize=(10, 2.5), legend=False)
 plt.savefig("LOO_lin.png")
 
-#
-comp = az.compare(dict(zip(["m=10", "m=50", "m=200"], idatas[3:6])))
-ax = az.plot_compare(
-    comp, plot_ic_diff=False, insample_dev=False, figsize=(10, 2.5), legend=False
-)
-plt.savefig("LOO_sin.png")
-
-#
-comp = az.compare(dict(zip(["m=10", "m=50", "m=200"], idatas[6:])))
-ax = az.plot_compare(
-    comp, plot_ic_diff=False, insample_dev=False, figsize=(10, 2.5), legend=False
-)
-plt.savefig("LOO_stp.png")
-
 # Free memory
-del comp, idata, idatas
+del comp, idata, idatas, μ
 
 
 # Bikes example
@@ -105,27 +92,27 @@ Y = bikes["count"]
 
 # run model
 with pm.Model() as model_bikes:
-    σ = pm.HalfNormal("σ", Y.std())
+    α = pm.Exponential("α", 1 / 10)
     μ = pmb.BART("μ", X, Y, m=50)
-    y = pm.Normal("y", μ, σ, observed=Y)
-    idata_bikes = pm.sample(random_seed=RANDOM_SEED)
+    y = pm.NegativeBinomial("y", mu=np.abs(μ), alpha=α, observed=Y)
+    idata_bikes = pm.sample(tune=2000, draws=2000, random_seed=RANDOM_SEED)
 
 # Trace
 az.plot_trace(idata_bikes)
 plt.savefig("trace_bikes.png", bbox_inches="tight")
 
 # Partial dependence plot
-pmb.plot_dependence(idata_bikes, X=X, Y=Y, grid=(2, 2))
+pmb.plot_dependence(μ, X=X, Y=Y, grid=(2, 2))
 plt.savefig("partial_dependence_plot_bikes.png", bbox_inches="tight")
 
 # Variable Importance
 labels = ["hour", "temperature", "humidity", "windspeed"]
-pmb.utils.plot_variable_importance(idata_bikes, X.values, labels, samples=100)
+pmb.plot_variable_importance(idata_bikes, μ, X.values, labels, samples=100)
 plt.savefig("bikes_VI-correlation.png")
 
 
 # Free memory
-del idata_bikes
+del idata_bikes, μ
 
 
 # Bikes example with different and m
@@ -136,10 +123,10 @@ VIs = []
 # Run model
 for m in trees:
     with pm.Model() as model_bikes:
-        σ = pm.HalfNormal("σ", Y.std())
-        μ = pmb.BART("μ", X, Y, m=m)
-        y = pm.Normal("y", μ, σ, observed=Y)
-        idata = pm.sample(chains=4, random_seed=RANDOM_SEED)
+        α = pm.Exponential("α", 1 / 10)
+        μ = pmb.BART("μ", X, Y, m=50)
+        y = pm.NegativeBinomial("y", mu=np.abs(μ), alpha=α, observed=Y)
+        idata = pm.sample(tune=2000, draws=2000, random_seed=RANDOM_SEED)
         idatas_bikes[str(m)] = idata
         # Variable importance
         VI = idata.sample_stats["variable_inclusion"].mean(("chain", "draw")).values
@@ -155,9 +142,7 @@ plt.axhline(1 / X.shape[1], ls="--", color="k")
 
 plt.legend()
 plt.ylabel("Relative variable importance")
-plt.xticks(
-    ticks=list(range(X.shape[1])), labels=[label for label in X.columns], fontsize=15
-)
+plt.xticks(ticks=list(range(X.shape[1])), labels=[label for label in X.columns], fontsize=15)
 
 plt.savefig("bart_vi_bikes.png")
 
@@ -168,33 +153,29 @@ del idata, idatas_bikes
 # Approximation to Friedman's five dimension function
 
 # Data generation
-X = rng.uniform(low=0, high=1.0, size=(100, 1000))
+X = np.random.uniform(low=0, high=1.0, size=(100, 1000))
 f_x = (
-    10 * np.sin(np.pi * X[:, 0] * X[:, 1])
-    + 20 * (X[:, 2] - 0.5) ** 2
-    + 10 * X[:, 3]
-    + 5 * X[:, 4]
+    10 * np.sin(np.pi * X[:, 0] * X[:, 1]) + 20 * (X[:, 2] - 0.5) ** 2 + 10 * X[:, 3] + 5 * X[:, 4]
 )
-Y = rng.normal(f_x, 1)
+Y = np.random.normal(f_x, 1)
 
 # Different number of variables
 num_covariables = ["5", "10", "100", "1000"]
 idatas = {}
+all_trees = {}
 VIs = []
-for num_covariable, tn, pn in zip(
-    num_covariables, (1000, 1000, 2000, 2000), (60, 60, 60, 60)
-):
+for num_covariable, tn, pn in zip(num_covariables, (1000, 1000, 2000, 2000), (60, 60, 60, 60)):
     with pm.Model() as model:
         μ = pmb.BART("μ", X[:, : int(num_covariable)], Y, m=200)
         σ = pm.HalfNormal("σ", 1)
         y = pm.Normal("y", mu=μ, sigma=σ, observed=Y)
         idata = pm.sample(
             tune=tn,
-            chains=4,
             random_seed=RANDOM_SEED,
             step=[pmb.PGBART([μ], num_particles=pn)],
         )
         idatas[num_covariable] = idata
+        all_trees[num_covariable] = μ
         VI = idata.sample_stats["variable_inclusion"].mean(("chain", "draw")).values
         VIs.append(VI / VI.sum())
 
@@ -206,7 +187,7 @@ f_x_new = (
     + 10 * X_new[:, 3]
     + 5 * X_new[:, 4]
 )
-Y_new = rng.normal(f_x_new, 1)
+Y_new = np.random.normal(f_x_new, 1)
 
 # plot
 fig, axes = plt.subplots(2, 4, sharex=True, sharey=True)
@@ -221,8 +202,11 @@ for i, (name, ax) in enumerate(zip(num_covariables * 2, axes.ravel())):
         yerr = np.vstack([mean - hdi[:, 0], hdi[:, 1] - mean])
         ax.errorbar(f_x, mean, yerr, linestyle="None", marker=".", alpha=0.5)
     elif i > 3:  # Out-of-sample
-        μ_pred = pmb.predict(
-            idatas[name], rng, X_new[:, : int(name)], size=500
+        μ_pred = pmb.utils._sample_posterior(
+            all_trees[name].owner.op.all_trees,
+            X_new[:, : int(name)],
+            np.random.default_rng(RANDOM_SEED),
+            size=500,
         ).squeeze()
         mean = μ_pred.mean(0)
         hdi = az.hdi(μ_pred, hdi_prob=0.9)
@@ -260,26 +244,23 @@ fig = plt.figure()
 for num, l in zip(num_covariables, lim):
     var_id = range(min(10, int(num)))
     pmb.plot_dependence(
-        idatas[num], X, Y, rug=False, var_idx=var_id, grid=(1, l), figsize=(10, 2)
+        all_trees[num], X, Y, rug=False, var_idx=var_id, grid=(1, l), figsize=(10, 2)
     )
     plt.ylim(5, 20)
     plt.savefig(f"pdps_friedman_{num}.png", bbox_inches="tight")
 
 # Free memory
-del idata, idatas
+del idata, idatas, all_trees
 
 
 # Friedman trees test
 
 # Data generation
-X = rng.uniform(low=0, high=1.0, size=(100, 10))
+X = np.random.uniform(low=0, high=1.0, size=(100, 10))
 f_x = (
-    10 * np.sin(np.pi * X[:, 0] * X[:, 1])
-    + 20 * (X[:, 2] - 0.5) ** 2
-    + 10 * X[:, 3]
-    + 5 * X[:, 4]
+    10 * np.sin(np.pi * X[:, 0] * X[:, 1]) + 20 * (X[:, 2] - 0.5) ** 2 + 10 * X[:, 3] + 5 * X[:, 4]
 )
-Y = rng.normal(f_x, 1)
+Y = np.random.normal(f_x, 1)
 
 idatas = {}
 trees = [10, 20, 50, 100, 200]
@@ -291,7 +272,7 @@ for m in trees:
         μ = pmb.BART("μ", X, Y, m=m)
         σ = pm.HalfNormal("σ", 1)
         y = pm.Normal("y", μ, σ, observed=Y)
-        idata = pm.sample(chains=4, random_seed=RANDOM_SEED)
+        idata = pm.sample(random_seed=RANDOM_SEED)
         idatas[str(m)] = idata
         # Variable importance
         VI = idata.sample_stats["variable_inclusion"].mean(("chain", "draw")).values
@@ -307,7 +288,7 @@ plt.legend()
 plt.savefig("var_importance.png")
 
 # Free memory
-del idata, idatas
+del idata, idatas, μ
 
 
 # Friedman test trees and alphas
@@ -322,6 +303,14 @@ idatas_at = {
     "200": {"0.1": {}, "0.25": {}, "0.5": {}},
 }
 
+all_trees_at = {
+    "10": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "20": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "50": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "100": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "200": {"0.1": {}, "0.25": {}, "0.5": {}},
+}
+
 # run model
 for m in trees:
     for alpha in alphas:
@@ -329,8 +318,9 @@ for m in trees:
             μ = pmb.BART("μ", X, Y, m=m, alpha=alpha)
             σ = pm.HalfNormal("σ", 1)
             y = pm.Normal("y", μ, σ, observed=Y)
-            idata = pm.sample(chains=4, random_seed=RANDOM_SEED)
+            idata = pm.sample(random_seed=RANDOM_SEED)
             idatas_at[str(m)][str(alpha)] = idata
+            all_trees_at[str(m)][str(alpha)] = list(μ.owner.op.all_trees)
 
 # plot
 fig, axes = plt.subplots(1, 5, figsize=(10, 3), sharey=True)
@@ -359,104 +349,8 @@ fig.supylabel(r"μ - $f_{(x)}$", fontsize=16)
 
 plt.savefig("boxplots_friedman_i2.png")
 
-# Model compare
-model_compare = az.compare(
-    {
-        "m10": idatas_at["10"]["0.25"],
-        "m20": idatas_at["20"]["0.25"],
-        "m50": idatas_at["50"]["0.25"],
-        "m100": idatas_at["100"]["0.25"],
-        "m200": idatas_at["200"]["0.25"],
-    }
-)
-
-ax = az.plot_compare(
-    model_compare,
-    plot_ic_diff=False,
-    insample_dev=False,
-    figsize=(10, 2.5),
-    legend=False,
-)
-
-plt.savefig("loo_friedman_i2.png")
-
-# Tree extraction
-trees_length = {
-    "10": {"0.1": {}, "0.25": {}, "0.5": {}},
-    "20": {"0.1": {}, "0.25": {}, "0.5": {}},
-    "50": {"0.1": {}, "0.25": {}, "0.5": {}},
-    "100": {"0.1": {}, "0.25": {}, "0.5": {}},
-    "200": {"0.1": {}, "0.25": {}, "0.5": {}},
-}
-
-for m in trees:
-    for alpha in alphas:
-        tmp_list = []
-        idata = idatas_at[f"{m}"][f"{alpha}"].sample_stats.bart_trees
-        for chain in idata:
-            for sample in chain:
-                for tree in sample:
-                    index = max(tree.item().tree_structure.keys())
-                    tmp_list.append(pmb.tree.BaseNode(index).depth)
-        trees_length[f"{m}"][f"{alpha}"] = pd.Series(tmp_list)
-
-# Trees' depth probabilities based on alpha values
-prob_alphas = []
-for alpha in alphas:
-    q = compute_prior_probability(alpha)
-    p = 1 - np.array(q)
-    p = p / p.sum()
-    prob_alphas.append(p)
-
-# Frequency of trees depths
-colors = ["C0", "C1", "C2"]
-wd = 0.33
-wd_lst = [0, wd, wd * 2]
-
-# All frequencies in one plot
-fig, axes = plt.subplots(1, 5, figsize=(25, 6), sharey=True)
-
-for m, ax in zip(trees, axes.ravel()):
-    for i in range(0, len(alphas)):
-        # Trees Depth Frequencies
-        frequency = (
-            trees_length[f"{m}"][f"{alphas[i]}"]
-            .value_counts(normalize=True)
-            .sort_index(ascending=True)
-        )
-        ax.bar(
-            frequency.index + wd_lst[i],
-            frequency.values,
-            color=colors[i],
-            width=wd,
-            edgecolor="k",
-            alpha=0.9,
-            label=rf"$\alpha$ = {alphas[i]}",
-        )
-        # Probabilities
-        x = np.array(range(1, len(prob_alphas[i]) + 1)) + wd_lst[i]
-        ax.scatter(
-            x,
-            prob_alphas[i],
-            facecolor=colors[i],
-            edgecolor="k",
-            marker="o",
-            s=80,
-            zorder=2,
-        )
-
-    major_ticks = np.arange(0, 7, 1)
-    ax.set_xticks(major_ticks)
-    ax.set_ylim(0, 1)
-    ax.set_xlim(0.5, 6.9)
-    ax.set_title(f"m={m}")
-    if m == 200:
-        ax.legend()
-
-plt.savefig("friedman_i2_hist.png")
-
 # Free memory
-del idata, idatas_at, model_compare
+del idata, idatas_at, all_trees_at, μ
 
 
 # Coal mining disaster
@@ -488,16 +382,14 @@ rates = idata_coal.posterior["μ"]
 rate_mean = idata_coal.posterior["μ"].mean(dim=["draw", "chain"])
 ax.plot(x_centers, rate_mean, "C0", lw=3)
 az.plot_hdi(x_centers, rates, smooth=False, color="C0")
-az.plot_hdi(
-    x_centers, rates, hdi_prob=0.5, smooth=False, color="C0", plot_kwargs={"alpha": 0}
-)
+az.plot_hdi(x_centers, rates, hdi_prob=0.5, smooth=False, color="C0", plot_kwargs={"alpha": 0})
 ax.plot(coal, np.zeros_like(coal) - 0.5, "k|")
 ax.set_xlabel("years")
 ax.set_ylabel("rate")
 plt.savefig("coal_mining.png")
 
 # Free memory
-del idata_coal
+del idata_coal, μ_, μ
 
 
 # Variance

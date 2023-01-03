@@ -23,7 +23,7 @@ Y = np.random.normal(f_x, 1)
 
 try:
     with pm.Model() as model:
-        μ = pmb.BART("μ", X[:, :100], Y, m=args.trees)
+        μ = pmb.BART("μ", X, Y, m=args.trees)
         σ = pm.HalfNormal("σ", 1)
         y = pm.Normal("y", mu=μ, sigma=σ, observed=Y)
         idata = pm.sample(

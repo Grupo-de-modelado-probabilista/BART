@@ -53,3 +53,10 @@ blue=$(tput setaf 38)
 reset=$(tput sgr0)
 e_note() { printf "${underline}${bold}${blue}Note:${reset}  ${blue}%s${reset}\n" "$@"
 }
+
+get_python_package_version(){
+    set -e
+    package_name=$1
+    version=$(python -c "import $package_name; print($package_name.__version__)")
+    echo $version
+}

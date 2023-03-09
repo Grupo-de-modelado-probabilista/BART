@@ -27,7 +27,9 @@ try:
         σ = pm.HalfNormal("σ", 1)
         y = pm.Normal("y", mu=μ, sigma=σ, observed=Y)
         idata = pm.sample(
-            step=[pmb.PGBART([μ], num_particles=args.particle)], random_seed=RANDOM_SEED
+            step=[pmb.PGBART([μ], num_particles=args.particle)],
+            random_seed=RANDOM_SEED,
+            cores=args.cores,
         )
 except Exception as e:
     raise RuntimeError("Issue running model") from e

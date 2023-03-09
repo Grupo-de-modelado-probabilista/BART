@@ -14,7 +14,7 @@ args = helper.parse_args()
 RANDOM_SEED = 8457
 rng = np.random.RandomState(RANDOM_SEED)
 
-coal = np.loadtxt(Path("...", "experiments", "coal.csv"))
+coal = np.loadtxt(Path("case_studies", "coal.csv"))
 
 # discretize data
 years = int(coal.max() - coal.min())
@@ -35,6 +35,7 @@ try:
         idata_coal = pm.sample(
             step=[pmb.PGBART([μ_], num_particles=args.particle)],
             random_seed=RANDOM_SEED,
+            cores=args.cores,
         )
 except Exception as e:
     raise RuntimeError("Issue running model") from e

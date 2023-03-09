@@ -14,7 +14,7 @@ args = helper.parse_args()
 RANDOM_SEED = 8457
 rng = np.random.RandomState(RANDOM_SEED)
 
-sin = np.loadtxt(Path("data", "space_influenza.csv"), skiprows=1, delimiter=",")
+sin = np.loadtxt(Path("case_studies", "space_influenza.csv"), skiprows=1, delimiter=",")
 X = sin[:, 1][:, None]
 Y = sin[:, 2]
 
@@ -24,7 +24,9 @@ try:
         p = pm.Deterministic("p", pm.math.sigmoid(μ))
         y = pm.Bernoulli("y", p=p, observed=Y)
         idata = pm.sample(
-            step=[pmb.PGBART([μ], num_particles=args.particle)], random_seed=RANDOM_SEED
+            step=[pmb.PGBART([μ], num_particles=args.particle)],
+            random_seed=RANDOM_SEED,
+            cores=args.cores,
         )
 except Exception as e:
     raise RuntimeError("Issue running model") from e

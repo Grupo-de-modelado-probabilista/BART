@@ -39,6 +39,14 @@ idatas_at = {
     "100": {"0.1": {}, "0.25": {}, "0.5": {}},
     "200": {"0.1": {}, "0.25": {}, "0.5": {}},
 }
+m_trees = {
+    "10": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "20": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "50": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "100": {"0.1": {}, "0.25": {}, "0.5": {}},
+    "200": {"0.1": {}, "0.25": {}, "0.5": {}},
+}
+
 
 # Run model
 for m in trees:
@@ -47,8 +55,14 @@ for m in trees:
             μ = pmb.BART("μ", X, Y, m=m, alpha=alpha)
             σ = pm.HalfNormal("σ", 1)
             y = pm.Normal("y", μ, σ, observed=Y)
-            idata = pm.sample(chains=4, random_seed=RANDOM_SEED)
+            idata = pm.sample(
+                chains=4,
+                compute_convergence_checks=False,
+                idata_kwargs={"log_likelihood": True},
+                random_seed=RANDOM_SEED,
+            )
             idatas_at[str(m)][str(alpha)] = idata
+            m_trees[str(m)][str(alpha)] = μ.owner.op.all_trees
 
 
 # Boxplots
@@ -96,7 +110,6 @@ plt.savefig("loo_friedman_i4samp.png")
 
 
 # Tree extraction
-
 trees_length = {
     "10": {"0.1": {}, "0.25": {}, "0.5": {}},
     "20": {"0.1": {}, "0.25": {}, "0.5": {}},
@@ -108,14 +121,12 @@ trees_length = {
 for m in trees:
     for alpha in alphas:
         tmp_list = []
-        idata = idatas_at[f"{m}"][f"{alpha}"].sample_stats.bart_trees
-        for chain in idata:
-            for sample in chain:
-                for tree in sample:
-                    index = max(tree.item().tree_structure.keys())
-                    tmp_list.append(pmb.tree.BaseNode(index).depth)
+        chain = m_trees[str(m)][str(alpha)]
+        for sample in chain:
+            for tree in sample:
+                index = max(tree.tree_structure.keys())
+                tmp_list.append(pmb.tree.get_depth(index))
         trees_length[f"{m}"][f"{alpha}"] = pd.Series(tmp_list)
-
 
 # Trees' depth probabilities based on alpha values
 prob_alphas = []
@@ -125,52 +136,10 @@ for alpha in alphas:
     p = p / p.sum()
     prob_alphas.append(p)
 
-
 # Frequency of trees depths
 colors = ["C0", "C1", "C2"]
 wd = 0.33
 wd_lst = [0, wd, wd * 2]
-
-# Individual plots
-for m in trees:
-    fig = plt.figure()
-    for i in range(0, len(alphas)):
-        # Trees Depth Frequencies
-        frequency = (
-            trees_length[f"{m}"][f"{alphas[i]}"]
-            .value_counts(normalize=True)
-            .sort_index(ascending=True)
-        )
-        plt.bar(
-            frequency.index + wd_lst[i],
-            frequency.values,
-            color=colors[i],
-            width=wd,
-            edgecolor="k",
-            alpha=0.9,
-            label=rf"$\alpha$ = {alphas[i]}",
-        )
-        # Probabilities
-        x = np.array(range(1, len(prob_alphas[i]) + 1)) + wd_lst[i]
-        plt.scatter(
-            x,
-            prob_alphas[i],
-            facecolor=colors[i],
-            edgecolor="k",
-            marker="o",
-            s=80,
-            zorder=2,
-        )
-
-    major_ticks = np.arange(0, 7, 1)
-    ax.set_xticks(major_ticks)
-    plt.ylim(0, 1)
-    plt.xlim(0.5, 6.9)
-    plt.title(f"m={m}")
-    plt.legend()
-
-    plt.savefig(f"friedman_i4samp_hist_m{m}.png")
-
 
 # All frequencies in one plot
 fig, axes = plt.subplots(1, 5, figsize=(25, 6), sharey=True)

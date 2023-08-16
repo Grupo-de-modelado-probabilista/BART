@@ -11,4 +11,4 @@ dependencies:
   - pymc==5.1.2
   - arviz==0.13.0
   - pip:
-    - pymc-bart==0.4.0
+    - pymc-bart==0.5.1

@@ -12,3 +12,4 @@ dependencies:
   - arviz==0.13.0
   - pip:
     - pymc-bart==0.5.1
+    - preliz==0.3.3

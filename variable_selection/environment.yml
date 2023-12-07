@@ -9,6 +9,8 @@ dependencies:
   - pre-commit
   - python=3.9
   - pip:
+    - bambi
     - pymc
     - "git+https://github.com/pymc-devs/pymc-bart.git@main"
     - "git+https://github.com/arviz-devs/arviz.git@main"
+    - "git+https://github.com/bambinos/kulprit.git@main"

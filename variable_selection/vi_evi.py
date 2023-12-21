@@ -4,6 +4,7 @@ from arviz import hdi
 
 from pymc_bart.utils import plot_variable_importance, _sample_posterior
 
+
 def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
     """Compare the explicit vs implicit variable importance computation.
 
@@ -27,12 +28,12 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
         The figure size.
     """
     rng = np.random.default_rng(seed)
-    
+
     _, ax = plot_variable_importance(
         idatas[-1],
         bart_rvs[-1],
-        X.iloc[:,indices], 
-        method=method, 
+        X.iloc[:, indices],
+        method=method,
         samples=samples,
         xlabel_angle=45,
         figsize=figsize,
@@ -41,7 +42,7 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
 
     predicted_all = _sample_posterior(
         bart_rvs[-1].owner.op.all_trees,
-        X=X.iloc[:,indices].values,
+        X=X.iloc[:, indices].values,
         rng=rng,
         size=samples,
     )
@@ -51,7 +52,7 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
     for idx in range(X.shape[1]):
         predicted_subset = _sample_posterior(
             bart_rvs[idx].owner.op.all_trees,
-            X=X.iloc[:,indices[:idx+1]].values,
+            X=X.iloc[:, indices[: idx + 1]].values,
             rng=rng,
             size=samples,
         )

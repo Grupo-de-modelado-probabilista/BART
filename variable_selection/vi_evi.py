@@ -13,7 +13,7 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
         List of BART random variables.
     idatas : list
         List of inferencedatas with posterior samples.
-    X : array-like
+    X : DataFrame
         Covariates matrix.
     indices : array-like
         The indices of the variables as computed by the implicit method.

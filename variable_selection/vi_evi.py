@@ -31,7 +31,7 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
     _, ax = plot_variable_importance(
         idatas[-1],
         bart_rvs[-1],
-        X, 
+        X.iloc[:,indices], 
         method=method, 
         samples=samples,
         xlabel_angle=45,
@@ -41,7 +41,7 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
 
     predicted_all = _sample_posterior(
         bart_rvs[-1].owner.op.all_trees,
-        X=X.values,
+        X=X.iloc[:,indices].values,
         rng=rng,
         size=samples,
     )

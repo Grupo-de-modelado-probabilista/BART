@@ -1,2 +1,3 @@
-/optimization/results/
+/optimization/line_profiler/results/
 /.idea/
+/optimization/case_studies/__pycache__/

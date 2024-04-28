@@ -53,6 +53,7 @@ for X, Y in zip(XS, YS):
             μ = pmb.BART("μ", X, Y, m=m)
             y = pm.Normal("y", μ, σ, observed=Y)
             idata = pm.sample(
+                chains=4,
                 random_seed=RANDOM_SEED,
                 compute_convergence_checks=False,
                 idata_kwargs={"log_likelihood": True},
@@ -103,7 +104,9 @@ with pm.Model() as model_bikes:
     μ_ = pmb.BART("μ_", X, np.log(Y), m=50)
     μ = pm.Deterministic("μ", np.exp(μ_))
     y = pm.NegativeBinomial("y", mu=μ, alpha=α, observed=Y)
-    idata_bikes = pm.sample(random_seed=RANDOM_SEED, compute_convergence_checks=False)
+    idata_bikes = pm.sample(
+        chains=4, random_seed=RANDOM_SEED, compute_convergence_checks=False
+    )
 
 # Trace
 az.plot_trace(idata_bikes, compact=False, var_names=["α"], kind="rank_bars")
@@ -115,7 +118,7 @@ plt.savefig("bikes_diagnostics_bart_rv.png")
 
 # Partial dependence plot
 pmb.plot_pdp(μ_, X=X, Y=Y, grid=(2, 2), func=np.exp)
-plt.savefig("partial_dependence_plot_bikes.png", bbox_inches="tight")
+plt.savefig("bikes_pdp.png", bbox_inches="tight")
 
 # Variable Importance
 labels = ["hour", "temperature", "humidity", "windspeed"]

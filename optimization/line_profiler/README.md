@@ -4,7 +4,7 @@ Welcome to the PyMC-BART line profiler.
 
 ## Getting started
 
-Miniconda is used to setup the environments.
+Miniconda is used to setup the environment.
 
 Once miniconda is installed, there is an `environment.yml` file to create an environment with all the dependencies needed to run the line profiling tests.
 

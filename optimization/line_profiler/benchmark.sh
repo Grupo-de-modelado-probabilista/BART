@@ -1,5 +1,5 @@
 #!/bin/sh
-source utils.sh
+source ../utils.sh
 
 BASE="../case_studies/"
 bart_version=$(pip freeze | grep pymc-bart | sed "s/==/-/g")
@@ -12,18 +12,17 @@ particle=(20 40 60)
 number_iters=(500)
 
 function profile() {
-    # SECONDS=0
     output="results/$1_$2_$3.prof"
+
     if [ -f $output ];then
         e_warning "profile run skipped already found output $output"
         return
     fi
+
     program="$BASE/bart_case_$1.py"
     kernprof -lv -o "$output" $program --trees $2 --particle $3 --iters $4
     exit_status=$?
-    # Elapsed seconds isn't useful b/c of the overhead of the profiler
-    # elapsedSeconds=$SECONDS
-    # to_csv $FUNCNAME $exit_status $1 $2 $3 $4 $elapsedSeconds
+    
     if [ $exit_status -eq 0 ]; then
         e_success "profile | t:$2 p:$3 i:$4 $output elapsed: $(textifyDuration $elapsedSeconds)"
     else

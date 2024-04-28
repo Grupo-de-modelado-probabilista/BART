@@ -13,16 +13,20 @@ conda env create -f environment.yml
 conda activate bart-mem-profiler
 ```
 
-`memray` is used to profile the memory usage of the `PGBART` sampler. The memory profile is obtained by running
+`memray` is used to profile the memory usage of the `PGBART` sampler. To run the memory benchmarks
+
+The memory profile is obtained by running
 
 ```bash
-python -m memray run profiler_test.py
+bash benchmark.sh
 ```
+
+This will run memory profiling benchmarks on the models in the `case_studies` directory with a variety of different hyperparameter values, and save the results in the `results` directory.
 
 There are multiple ways of analyzing the memray profile data. To visualize the memory profile data in a flame or icicle graph, run
 
 ```bash
-python -m memray flame profiler_test.py
+python -m memray flame results/<filename>.prof
 ```
 
 and then open the generated `<memray-flamegraph>.html` file in a browser.
@@ -30,7 +34,7 @@ and then open the generated `<memray-flamegraph>.html` file in a browser.
 Another meaningful way to analyze the memory profile data is via a tree reporter. A tree reporter provides a simplified representation of the call hierarchy of the tracked process at the time when its memory usage was at its peak. 
 
 ```bash
-python -m memray tree <profiler_test>.py.<time>.bin
+python -m memray tree results/<filename>.prof
 ```
 
 When analyzing the memray profile data, it is often useful to hide "irrelevant" frames such as import system frames. 
@@ -41,7 +45,7 @@ Below, some brief notes are given on the memory allocation when using the memray
 
 ### BART bikes
 
-`biking_200_60.prof`:
+`results/biking_200_60.prof`:
 
  - `step = pmb.PGBART([mu])`: About 19.5MB of memory utilized
     - `jitter_duplicated(...)`: Accounts for 13.5/19.5MB of memory utilized

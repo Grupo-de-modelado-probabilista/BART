@@ -37,11 +37,15 @@ When analyzing the memray profile data, it is often useful to hide "irrelevant" 
 
 ## Results
 
-Below, some brief notes are given on the memory allocation when using the memray tree reporter.
+Below, some brief notes are given on the memory allocation when using the memray tree reporter on the case study models.
 
- - `step = pmb.PGBART([mu])`: About 17.5MB of memory utilized
-    - `jitter_duplicated(...)`: Accounts for 13.442/17.5MB of memory utilized
- - `step.astep(iter)`: About 7.326MB of memory utilized
-    - `self.running_sd[odim].update(new)`: Accounts for 6.102/7.326MB of memory utilized
+### BART bikes
+
+`biking_200_60.prof`:
+
+ - `step = pmb.PGBART([mu])`: About 19.5MB of memory utilized
+    - `jitter_duplicated(...)`: Accounts for 13.5/19.5MB of memory utilized
+ - `step.astep(iter)`: About 7.5MB of memory utilized
+    - `self.running_sd[odim].update(new)`: Accounts for 6.0/7.5MB of memory utilized
 
 The initialization of PGBART in this example accounts for the majority of the PGBART memory usage.

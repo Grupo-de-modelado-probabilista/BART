@@ -4,8 +4,8 @@ Welcome to the BART optimization module.
 
 The purpose of this module is to perform detailed code profiling on the BART codebase to identify areas of high memory usage and performance bottlenecks. Thus, there are two directories:
 
-1. `line_profiler`
-2. `memray`
+1. `line_profiler` - contains line-by-line timing profiles of specific methods and function calls of the PGBART sampler.
+2. `memray` - contains reports on memory allocations and deallocations of the PGBART sampler.
 
 ## Getting started
 

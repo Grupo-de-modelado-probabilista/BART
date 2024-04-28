@@ -1,4 +1,4 @@
-name: bart-0.5.12
+name: bart-mem-profiler
 channels:
   - conda-forge
 dependencies:

@@ -21,7 +21,7 @@ In order to provide line-by-line profiling, specific functions and methods have 
 
 Below are the main takeaways from the line profiling results.
 
-As expected, the majority of the time is spent within loops of the `astep` method. Within the loops, there are several calls to other functions or methods.
+As expected, the majority of the time is spent within loops of the `astep` method. Within the loops, there are several calls to other functions or methods performing computations:
 
 └── astep (354s)
     ├── sample_tree (34% or 106s)
@@ -35,7 +35,7 @@ As expected, the majority of the time is spent within loops of the `astep` metho
         ├── control_flow (87%)
         └── systematic (5.2%)
 
-Where `%` indicates percent of time spent executing that line of code, and `s` indicates seconds spent executing that line of code. The tree-diagram represents the call stack and only the **time intensive** lines are shown for brevity.
+Where `%` indicates percent of time spent executing that line of code, and `s` indicates seconds spent executing that line of code. The tree-diagram represents the call stack and only the **time intensive** lines are shown for brevity. The values in parentheses represent the average across all benchmark case studies.
 
 An interesting observation is that even though there are _several_ operations and or function calls within the loops, typically only a _few_ of them are responsible for the percentage of total time.
 
@@ -55,7 +55,7 @@ Currently, at each step PG-BART fits $n$ out of $m$ trees, but all $m$ trees are
 
 ## Solutions
 
-The profiling results above indicate that our problem is CPU bound, i.e. the majority of the time is spent doing computational work within for loop(s) with minimal idle time waiting for I/O or other external operations to complete. 
+The profiling results above indicate that our problem is CPU bound, i.e. the majority of time is spent doing computational work within for loop(s) with minimal idle time waiting for I/O or other external operations to complete. 
 
 Due to this, our focus should be on improving the speed of loops and the computations happening within them. Within the loops, there are repetitive operations where the same computation is performed, albeit on different data with the same data types. This leads us to consider ahead of time (AOT) and just in time (JIT) compilation, vectorization, and parallelization as potential solutions to improve the performance of PG-BART.
 
@@ -80,8 +80,6 @@ Another area of improvement in PG-BART is vectorization and parallelization.
 
 
 ### Comparison
-
-#### Comparison
 
 | Framework | Rewrite? | Compilation | Impl. Difficulty | Vectorization | Parallelization | Accelerator Support |
 |-----------|----------|-------------|------------------|---------------|-----------------|---------------------|

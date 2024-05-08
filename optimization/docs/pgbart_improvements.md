@@ -10,6 +10,7 @@ Code profiling was conducted using the `line_profiler` and `memray` packages for
 
 In order to provide line-by-line profiling, specific functions and methods have been decorated with `@profile` to obtain a line-by-line timing profile within _that_ function or method. In our case, we are interested in profiling the `.astep` method (and the subsequent call stack) of the `PGBART` sampler as this method represents the main entry point of the particle sampler. Overall, eight functions and or methods are profiled:
 
+```bash
 └── astep
     ├── sample_tree
     │   └── grow_tree
@@ -18,11 +19,13 @@ In order to provide line-by-line profiling, specific functions and methods have 
     │   └── logp
     └── resample
         └── systematic
+```
 
 Below are the main takeaways from the line profiling results.
 
 As expected, the majority of the time is spent within loops of the `astep` method. Within the loops, there are several calls to other functions or methods performing computations:
 
+```bash
 └── astep (354s)
     ├── sample_tree (34% or 106s)
     │   └── grow_tree (92% or 80s)
@@ -34,6 +37,7 @@ As expected, the majority of the time is spent within loops of the `astep` metho
     └── resample (4% or 12s)
         ├── control_flow (87%)
         └── systematic (5.2%)
+```
 
 Where `%` indicates percent of time spent executing that line of code, and `s` indicates seconds spent executing that line of code. The tree-diagram represents the call stack and only the **time intensive** lines are shown for brevity. The values in parentheses represent the average across all benchmark case studies.
 
@@ -66,7 +70,7 @@ _Ahead of time compilation_ (AOT): Refers to compiling code prior to execution.
 - AOT compilation eliminates the need for runtime environment or a virtual machine (VM), reducing memory usage and startup times.
 - AOT compiled code may not be as optimized as JIT compiled code since it cannot leverage runtime information, e.g. to gain information about CPU intensive code.
 
-_Just in time compilation_: Refers to compilation that happens dynamically during program execution rather than ahead of time.
+_Just in time compilation_ (JIT): Refers to compilation that happens dynamically during program execution rather than ahead of time.
 
 - JIT compiler translates bytecode into machine instructions at runtime, just before executing it.
 - Allows the JIT compiler to optimize the machine code using runtime information and only compile code paths that are actually executed.

@@ -12,7 +12,7 @@ particle=(20 40 60)
 number_iters=(500)
 
 function profile() {
-    output="results/$1_$2_$3.prof"
+    output="results/$1_$2_$3"
 
     if [ -f $output ];then
         e_warning "profile run skipped already found output $output"

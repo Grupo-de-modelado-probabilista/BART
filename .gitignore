@@ -4,3 +4,6 @@
 
 /.idea/
 /optimization/case_studies/__pycache__/
+
+# Ignore memray html files
+/optimization/memray/*.html

@@ -34,14 +34,17 @@ python -m line_profiler results/<filename>.lprof
 There are several results within one `.prof` file. This is because several methods and functions have been decorated with the `@profile` decorator. In our case, we are interested in profiling the `.astep` method (and the subsequent call stack) of the `PGBART` sampler as this method represents the main entry point of the particle sampler.
 
 Overall, eight functions and or methods are profiled.
-- `astep`
-    - `sample_tree`
-        - `grow_tree`
-            - `draw_leaf_value`
-    - `update_weight`
-        - `logp`
-    - `resample`
-        - `systematic`
+
+```bash
+└── astep
+    ├── sample_tree
+    │   └── grow_tree
+    │       └── draw_leaf_value
+    ├── update_weight
+    │   └── logp
+    └── resample
+        └── systematic
+```
 
 #### Biking
 

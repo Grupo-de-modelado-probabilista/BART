@@ -1,0 +1,18 @@
+name: bart-mem-profiler
+channels:
+  - conda-forge
+dependencies:
+  - blas
+  - jupyter
+  - scikit-learn
+  - pip
+  - pre-commit
+  - python=3.12
+  - pymc==5.13.1
+  - arviz==0.18.0
+  - pip:
+    - argparse==1.4.0
+    - matplotlib==3.8.4
+    - memray==1.12.0
+    - pymc-bart==0.5.12
+    - snakeviz==2.2.0

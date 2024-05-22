@@ -1,2 +1,9 @@
-/optimization/results/
+# Ignore profiling stdout files
+/optimization/line_profiler/results/
+/optimization/memray/results/
+
 /.idea/
+/optimization/case_studies/__pycache__/
+
+# Ignore memray html files
+/optimization/memray/*.html

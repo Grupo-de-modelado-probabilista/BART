@@ -1,27 +1,12 @@
-# BART Experiments
+# BART Optimization
 
-## Environment set up
-To set up the environments we used [miniconda](https://docs.conda.io/en/latest/miniconda.html).
+Welcome to the BART optimization module.
 
-Once you have miniconda installed, there is an `environment.yml` file in each folder to create an environment designed to run the tests in each one of the folders. These environments can be created from within each folder with:
+The purpose of this module is to perform detailed code profiling on the BART codebase to identify areas of high memory usage and performance bottlenecks. Thus, there are two directories:
 
-```bash
-conda env create -f environment.yml
-conda activate bart-0.3.0
-```
+1. `line_profiler` - contains line-by-line timing profiles of specific methods and function calls of the PGBART sampler.
+2. `memray` - contains reports on memory allocations and sizes of the PGBART sampler.
 
-To run benchmarks you should do the following command
-```bash
-bash benchmark.sh
-```
+## Getting started
 
-
-To see the plot of the performance profile you can run the following commands:
-```bash
-snakeviz $file
-```
-
-To see the plot of memory use you can run the following commands:
-```bash
-mprof plot $file
-```
+Please refer to the `README` files within each of the `line_profiler` and `memray` directories for instructions on the environment setup and how to run the benchmarks. The [markdown](docs/pgbart_improvements.md) in `docs/` contains a summary of the code profiling and suggests potential methods to resolve the identified bottlenecks.

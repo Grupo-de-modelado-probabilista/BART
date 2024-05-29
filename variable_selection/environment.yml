@@ -7,7 +7,7 @@ dependencies:
   - jupyter
   - pip
   - pre-commit
-  - python=3.9
+  - python=3.10
   - pip:
     - bambi
     - pymc

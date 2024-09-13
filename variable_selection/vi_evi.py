@@ -35,9 +35,9 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
         X.iloc[:, indices],
         method=method,
         samples=samples,
-        xlabel_angle=45,
         figsize=figsize,
         random_seed=seed,
+        plot_kwargs={"rotation": 45},
     )
 
     predicted_all = _sample_posterior(

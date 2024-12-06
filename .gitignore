@@ -7,3 +7,5 @@
 
 # Ignore memray html files
 /optimization/memray/*.html
+
+__pycache__/

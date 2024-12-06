@@ -1,8 +1,11 @@
 import numpy as np
-from scipy.stats import pearsonr
 from arviz import hdi
-
-from pymc_bart.utils import plot_variable_importance, _sample_posterior
+from pymc_bart.utils import (
+    _sample_posterior,
+    compute_variable_importance,
+    plot_variable_importance,
+)
+from scipy.stats import pearsonr
 
 
 def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
@@ -28,21 +31,24 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
         The figure size.
     """
     rng = np.random.default_rng(seed)
-
-    _, ax = plot_variable_importance(
+    pruning_results = compute_variable_importance(
         idatas[-1],
         bart_rvs[-1],
         X.iloc[:, indices],
         method=method,
         samples=samples,
-        figsize=figsize,
-        random_seed=seed,
-        plot_kwargs={"rotation": 45},
+        random_seed=rng,
     )
+
+    ax = plot_variable_importance(
+        pruning_results,
+        figsize=figsize,
+    )
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=11)
 
     predicted_all = _sample_posterior(
         bart_rvs[-1].owner.op.all_trees,
-        X=X.iloc[:, indices].values,
+        X=X.iloc[:, indices].to_numpy(),
         rng=rng,
         size=samples,
     )
@@ -52,15 +58,16 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
     for idx in range(X.shape[1]):
         predicted_subset = _sample_posterior(
             bart_rvs[idx].owner.op.all_trees,
-            X=X.iloc[:, indices[: idx + 1]].values,
+            X=X.iloc[:, indices[: idx + 1]].to_numpy(),
             rng=rng,
             size=samples,
         )
         pearson = np.zeros(samples)
         for j in range(samples):
             pearson[j] = (
-                pearsonr(predicted_all[j].flatten(), predicted_subset[j].flatten())[0]
-            ) ** 2
+                (pearsonr(predicted_all[j].flatten(), predicted_subset[j].flatten())[0])
+                ** 2
+            )
         ev_mean[idx] = np.mean(pearson)
         ev_hdi[idx] = hdi(pearson)
 
@@ -70,7 +77,11 @@ def vi_evi(bart_rvs, idatas, X, indices, method, samples, seed, figsize):
         ev_mean,
         np.array((ev_mean - ev_hdi[:, 0], ev_hdi[:, 1] - ev_mean)),
         color="C1",
-        alpha=0.5,
+        alpha=0.8,
+    )
+    children = ax.get_children()
+    ax.legend(
+        [children[0], children[4]], ["Pruned trees", "Refitted model"], fontsize=11
     )
 
     return ax
